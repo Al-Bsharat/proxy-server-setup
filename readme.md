@@ -19,12 +19,12 @@ I no longer recommend setting the ulimit system-wide. Instead, create a systemd 
 To apply the patch to your server, execute the following command in your terminal. This command downloads the script and executes it with root privileges. Ensure you have the necessary permissions to perform these actions on your server.
 
 ```bash
-sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/xvertile/proxy-server-setup/main/patcher.sh)"
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/Al-Bsharat/proxy-server-setup/refs/heads/main/patcher.sh)"
 ```
 
 Without SMTP block:
 ```bash
-sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/xvertile/proxy-server-setup/main/simple-patch.sh)"
+sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/Al-Bsharat/proxy-server-setup/refs/heads/main/simple-patch.sh)"
 ```
 ### Prerequisites
 
