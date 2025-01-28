@@ -15,8 +15,43 @@ sudo sysctl --system
 # Set ulimit to the maximum possible value and make it persistent
 # Get the maximum allowed number of open file descriptors
 MAX_ULIMIT=$(ulimit -Hn)
-# Make the ulimit setting persistent across reboots by adding it to /etc/security/limits.conf
-echo "* soft nofile $MAX_ULIMIT" >> /etc/security/limits.conf
-echo "* hard nofile $MAX_ULIMIT" >> /etc/security/limits.conf
+LIMITS_CONF="/etc/security/limits.conf"
+# Remove existing lines matching "* soft nofile ..." or "* hard nofile ..."
+sed -i '/^\*\s\+soft\s\+nofile\s\+/d' "$LIMITS_CONF"
+sed -i '/^\*\s\+hard\s\+nofile\s\+/d' "$LIMITS_CONF"
+# Now add the new lines
+echo "* soft nofile $MAX_ULIMIT" >> "$LIMITS_CONF"
+echo "* hard nofile $MAX_ULIMIT" >> "$LIMITS_CONF"
+
+
+
+if ! grep -Fxq "DefaultLimitDATA=infinity" /etc/systemd/system.conf; then
+echo 'Adding /etc/systemd/system.conf settings'
+echo "DefaultLimitDATA=infinity
+DefaultLimitSTACK=infinity
+DefaultLimitSIGPENDING=infinity
+DefaultLimitCORE=infinity
+DefaultLimitRSS=infinity
+DefaultLimitNOFILE=infinity
+DefaultLimitAS=infinity
+DefaultLimitNPROC=infinity
+DefaultLimitMEMLOCK=infinity
+DefaultTasksMax=infinity" >> /etc/systemd/system.conf
+fi
+
+if ! grep -Fxq "DefaultLimitDATA=infinity" /etc/systemd/user.conf; then
+echo 'Adding /etc/systemd/user.conf settings'
+echo "DefaultLimitDATA=infinity
+DefaultLimitSTACK=infinity
+DefaultLimitSIGPENDING=infinity
+DefaultLimitCORE=infinity
+DefaultLimitRSS=infinity
+DefaultLimitNOFILE=infinity
+DefaultLimitAS=infinity
+DefaultLimitNPROC=infinity
+DefaultLimitMEMLOCK=infinity
+DefaultTasksMax=infinity" >> /etc/systemd/user.conf
+fi
+
 
 echo "Configuration complete. System modifications applied."
