@@ -16,12 +16,21 @@ sudo sysctl --system
 # Get the maximum allowed number of open file descriptors
 MAX_ULIMIT=$(ulimit -Hn)
 LIMITS_CONF="/etc/security/limits.conf"
+
 # Remove existing lines matching "* soft nofile ..." or "* hard nofile ..."
 sed -i '/^\*\s\+soft\s\+nofile\s\+/d' "$LIMITS_CONF"
 sed -i '/^\*\s\+hard\s\+nofile\s\+/d' "$LIMITS_CONF"
+
+# Remove existing lines matching "* soft nproc ..." or "* hard nproc ..."
+sed -i '/^\*\s\+soft\s\+nproc\s\+/d' "$LIMITS_CONF"
+sed -i '/^\*\s\+hard\s\+nproc\s\+/d' "$LIMITS_CONF"
+
 # Now add the new lines
 echo "* soft nofile $MAX_ULIMIT" >> "$LIMITS_CONF"
 echo "* hard nofile $MAX_ULIMIT" >> "$LIMITS_CONF"
+echo "* soft nproc 65535" >> "$LIMITS_CONF"
+echo "* hard nproc 65535" >> "$LIMITS_CONF"
+
 
 
 
