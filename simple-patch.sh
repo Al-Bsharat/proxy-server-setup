@@ -32,38 +32,20 @@ wget -O /etc/sysctl.d/99-custom.conf https://raw.githubusercontent.com/Al-Bshara
 # Reload system-wide sysctl settings
 sysctl --system
 
-# Set ulimit to the maximum possible value and make it persistent
+# Set nofile limits for login sessions and systemd services.
 MAX_ULIMIT=$(ulimit -Hn)
-LIMITS_CONF="/etc/security/limits.conf"
+mkdir -p /etc/security/limits.d
+cat > /etc/security/limits.d/99-proxy-nofile.conf <<EOF
+* soft nofile $MAX_ULIMIT
+* hard nofile $MAX_ULIMIT
+EOF
 
-# Remove existing entries to avoid duplicates on re-run
-sed -i '/^\*\s\+soft\s\+nofile\s\+/d' "$LIMITS_CONF"
-sed -i '/^\*\s\+hard\s\+nofile\s\+/d' "$LIMITS_CONF"
-sed -i '/^\*\s\+soft\s\+nproc\s\+/d' "$LIMITS_CONF"
-sed -i '/^\*\s\+hard\s\+nproc\s\+/d' "$LIMITS_CONF"
+mkdir -p /etc/systemd/system.conf.d
+cat > /etc/systemd/system.conf.d/99-proxy-nofile.conf <<EOF
+[Manager]
+DefaultLimitNOFILE=$MAX_ULIMIT
+EOF
 
-echo "* soft nofile $MAX_ULIMIT" >> "$LIMITS_CONF"
-echo "* hard nofile $MAX_ULIMIT" >> "$LIMITS_CONF"
-echo "* soft nproc 65535" >> "$LIMITS_CONF"
-echo "* hard nproc 65535" >> "$LIMITS_CONF"
-
-# Set systemd default limits (idempotent — only adds if not present)
-for conf in /etc/systemd/system.conf /etc/systemd/user.conf; do
-    if ! grep -Fxq "DefaultLimitNOFILE=infinity" "$conf"; then
-        echo "Adding limits to $conf"
-        cat >> "$conf" <<SYSD
-DefaultLimitDATA=infinity
-DefaultLimitSTACK=infinity
-DefaultLimitSIGPENDING=infinity
-DefaultLimitCORE=infinity
-DefaultLimitRSS=infinity
-DefaultLimitNOFILE=infinity
-DefaultLimitAS=infinity
-DefaultLimitNPROC=infinity
-DefaultLimitMEMLOCK=infinity
-DefaultTasksMax=infinity
-SYSD
-    fi
-done
+systemctl daemon-reexec
 
 echo "Configuration complete. System modifications applied."

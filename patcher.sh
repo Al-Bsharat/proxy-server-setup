@@ -32,13 +32,21 @@ wget -O /etc/sysctl.d/99-custom.conf https://raw.githubusercontent.com/Al-Bshara
 # Reload system-wide sysctl settings
 sysctl --system
 
-# Set ulimit to the maximum possible value and make it persistent
-# Get the maximum allowed number of open file descriptors
+# Set nofile limits for login sessions and systemd services.
 MAX_ULIMIT=$(ulimit -Hn)
+mkdir -p /etc/security/limits.d
+cat > /etc/security/limits.d/99-proxy-nofile.conf <<EOF
+* soft nofile $MAX_ULIMIT
+* hard nofile $MAX_ULIMIT
+EOF
 
-# Make the ulimit setting persistent across reboots by adding it to /etc/security/limits.conf
-echo "* soft nofile $MAX_ULIMIT" >> /etc/security/limits.conf
-echo "* hard nofile $MAX_ULIMIT" >> /etc/security/limits.conf
+mkdir -p /etc/systemd/system.conf.d
+cat > /etc/systemd/system.conf.d/99-proxy-nofile.conf <<EOF
+[Manager]
+DefaultLimitNOFILE=$MAX_ULIMIT
+EOF
+
+systemctl daemon-reexec
 
 # Update package lists
 apt-get update

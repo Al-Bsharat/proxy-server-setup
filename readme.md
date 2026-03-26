@@ -15,11 +15,13 @@ Key actions performed by the script include:
 - The sysctl profile now keeps ephemeral ports in `10000-65535`. This avoids low service ports and gives a large outbound port pool.
 - If your proxy listens on any ports inside that range, edit `/etc/sysctl.d/99-custom.conf` and set `net.ipv4.ip_local_reserved_ports` for those listener ports before heavy production use.
 - Sysctl alone cannot fully prevent ephemeral port exhaustion for applications that `bind()` a source IP before `connect()`. Those applications should also enable Linux `IP_BIND_ADDRESS_NO_PORT` on outbound sockets.
-- Removed dangerous hard-coded TCP/UDP memory values and the low `tcp_max_tw_buckets` limit so the kernel can size those more safely for the host.
+- Removed dangerous hard-coded TCP/UDP memory values so the kernel can auto-tune those for the host.
+- `tcp_max_tw_buckets` set to 2,000,000 for high-churn forward proxies. The kernel default varies by distro/RAM but is often too low when connecting to millions of unique destination IPs.
+- `tcp_no_metrics_save` enabled — beneficial when the host mostly connects to unique one-off destinations (forward proxies, scrapers) where cached metrics are rarely reused. Disable this (set to 0) if your workload repeatedly reconnects to the same small set of servers.
 
 ### Notes
 
-I no longer recommend setting the ulimit system-wide. Instead, create a systemd service for the proxy server using `nano /etc/systemd/system/proxy.service` and include the `LimitNOFILE=1048576` directive in it. This approach ensures that the ulimit is properly configured, as this value can be adjusted in numerous locations across Linux.
+The scripts now install `nofile` defaults through `/etc/security/limits.d/99-proxy-nofile.conf` and `/etc/systemd/system.conf.d/99-proxy-nofile.conf`. For the most predictable production setup, still set `LimitNOFILE=1048576` (or your chosen value) in the proxy's own systemd unit so the service carries an explicit per-service override.
 
 ### Installation
 
@@ -38,4 +40,3 @@ sudo bash -c "$(curl -fsSL https://raw.githubusercontent.com/Al-Bsharat/proxy-se
 - An Ubuntu server (The script is designed with Ubuntu in mind, but it may work with slight modifications on other Linux distributions.)
 - Root access to the server.
 - `curl` installed on the server (for downloading the script).
-
