@@ -10,6 +10,13 @@ Key actions performed by the script include:
 - Blocking all mail ports to improve security and prevent misuse of the server for sending unsolicited emails.
 - Installing `iptables-persistent` to ensure firewall rules persist across reboots.
 
+### Production notes
+
+- The sysctl profile now keeps ephemeral ports in `10000-65535`. This avoids low service ports and gives a large outbound port pool.
+- If your proxy listens on any ports inside that range, edit `/etc/sysctl.d/99-custom.conf` and set `net.ipv4.ip_local_reserved_ports` for those listener ports before heavy production use.
+- Sysctl alone cannot fully prevent ephemeral port exhaustion for applications that `bind()` a source IP before `connect()`. Those applications should also enable Linux `IP_BIND_ADDRESS_NO_PORT` on outbound sockets.
+- Removed dangerous hard-coded TCP/UDP memory values and the low `tcp_max_tw_buckets` limit so the kernel can size those more safely for the host.
+
 ### Notes
 
 I no longer recommend setting the ulimit system-wide. Instead, create a systemd service for the proxy server using `nano /etc/systemd/system/proxy.service` and include the `LimitNOFILE=1048576` directive in it. This approach ensures that the ulimit is properly configured, as this value can be adjusted in numerous locations across Linux.
