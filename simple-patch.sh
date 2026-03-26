@@ -27,7 +27,7 @@ EOL
 chattr +i /etc/resolv.conf
 
 # Download the configuration file and place it in /etc/sysctl.d/
-wget -O /etc/sysctl.d/99-custom.conf https://raw.githubusercontent.com/xvertile/proxy-server-setup/main/99-custom.conf
+wget -O /etc/sysctl.d/99-custom.conf https://raw.githubusercontent.com/Al-Bsharat/proxy-server-setup/main/99-custom.conf
 
 # Reload system-wide sysctl settings
 sysctl --system
